@@ -24,7 +24,7 @@ notify_bin = '/usr/bin/notify-send'
 
 def main():
     # Print help
-    if '-h' in sys.argv[1]:
+    if len(sys.argv) == 1 or 'h' in sys.argv[1]:
         _print_help()
     # Check permissions
     if not _is_root():
@@ -49,10 +49,10 @@ def main():
         while eix.stdout.readline():
             log.write(eix.stdout.readline())
         # Print eix-diff if necessary
-        if 'd' in sys.argv[1]:
+        if len(sys.argv) > 1 and 'd' in sys.argv[1]:
             Popen([eix_diff_bin] + ['/var/cache/eix.previous'] + ['/var/cache/eix']).wait()
     # Send notification
-    if 'n' in sys.argv[1]:
+    if len(sys.argv) > 1 and 'n' in sys.argv[1]:
         header = 'Update is complete'
         msg = 'Synchronization of layman, portage and eix is complete. You are now free to emerge -auvDN world.'
         Popen([notify_bin] + [header] + [msg])
@@ -65,8 +65,9 @@ Usage:
     ./eupdate.py [-dn]
 
 Options:
-    -d      - run eix-diff to show difference after update
-    -n      - show notification (via notify-send) when everything is done""")
+    (d)iff      - run eix-diff to show difference after update
+    (n)otify    - show notification (via notify-send) when everything is done
+    (h)elp      - show this help""")
     sys.exit(0)
 
 def _is_layman_installed():

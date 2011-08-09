@@ -2,8 +2,9 @@ eupdate - Dirty little script for portage, layman and eix update.
 https://github.com/p0deje/eupdate
 
 Usage:
-    ./eupdate.py [-dn]
+    ./eupdate.py [dn]
 
 Options:
-    -d      - run eix-diff to show difference after update
-    -n      - show notification (via notify-send) when everything is done
+    (d)iff      - run eix-diff to show difference after update
+    (n)otify    - show notification (via notify-send) when everything is done
+    (h)elp      - show this help
