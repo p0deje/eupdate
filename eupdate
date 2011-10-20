@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+#
+# This is a simple script for Gentoo portage, layman and eix updating.
+#
+# Homepage: https://github.com/p0deje/eupdate
+#
+
+from __future__ import print_function
+
+# Meta:
+__author__ = "Alex Rodionov"
+__email__ = "p0deje@gmail.com"
+__version__ = "git"
+__productname__ = "eupdate"
+__description__ = "Gentoo portage, layman and eix updating tool."
+
+import portage
+from portage.output import white, yellow, turquoise, green, red
+import sys
+from subprocess import Popen, PIPE
+from os import getuid
+
+vartree = portage.db[portage.root]['vartree']
+log_file = '/var/log/eupdate.log'
+
+# Binaries
+emerge_bin = '/usr/bin/emerge'
+layman_bin = '/usr/bin/layman'
+eix_sync_bin = '/usr/bin/eix-sync'
+notify_bin = '/usr/bin/notify-send'
+
+def main():
+    # Print help
+    if len(sys.argv) == 1 or 'h' in sys.argv[1]:
+        _print_help()
+    # Check permissions
+    if not _is_root():
+        print(red('Not enough permissions! Make sure you run it as root.'))
+        sys.exit(0)
+    # Open log file
+    log = open(log_file, 'a')
+    # Update part
+    if _is_eix_installed():
+        print(green('*') + white(' Update all the system with ') + green('eix-sync') + white('. Please wait...'))
+        eix_sync = Popen([eix_sync_bin] + ['-S'], stdout=PIPE)
+        while eix_sync.stdout.readline():
+            log.write(eix_sync.stdout.readline())
+    else:
+        print('Updating portage. Please, wait...')
+        emerge = Popen([emerge_bin] + ['--sync'], stdout=PIPE)
+        while emerge.stdout.readline():
+            log.write(emerge.stdout.readline())
+        # Update layman
+        if _is_layman_installed():
+            print('Updating layman. Please, wait...')
+            layman = Popen([layman_bin] + ['-S'], stdout=PIPE)
+            while layman.stdout.readline():
+                log.write(layman.stdout.readline())
+    # Send notification
+    if len(sys.argv) > 1 and 'n' in sys.argv[1]:
+        header = 'Update is complete'
+        msg = 'Synchronization of layman, portage and eix is complete. You are now free to emerge -auvDN world.'
+        Popen([notify_bin] + [header] + [msg])
+
+def _print_help():
+    print()
+    print(turquoise(__productname__) + ' - ' + white('portage, layman and eix update tool'))
+    print()
+    print(white('Usage:'))
+    print('    ' + turquoise('./' + __productname__) + ' ' + yellow('[options]'))
+    print()
+    print(white('Options:'))
+    print('    ' + green('(n)otify') + '   ' + white('- show notification (via notify-send) when everything is done' ))
+    print('    ' + green('(h)elp') + '     ' + white('- show this help' ))
+    print()
+    sys.exit(0)
+
+def _is_layman_installed():
+    return bool(vartree.dep_bestmatch('app-portage/layman'))
+
+def _is_eix_installed():
+    return bool(vartree.dep_bestmatch('app-portage/eix'))
+
+def _is_root():
+    return getuid() == 0
+
+if __name__ == '__main__':
+    main()
