@@ -43,7 +43,7 @@ def main():
     # Update part
     if _is_eix_installed():
         print(green('*') + white(' Update all the system with ') + green('eix-sync') + white('. Please wait...'))
-        eix_sync = Popen([eix_sync_bin] + ['-S'], stdout=PIPE)
+        eix_sync = Popen([eix_sync_bin], stdout=PIPE)
         while eix_sync.stdout.readline():
             log.write(eix_sync.stdout.readline())
     else:
